@@ -32,26 +32,15 @@ request(Client) ->
     Recv = gen_tcp:recv(Client,0),
     case Recv of
         {ok, Str} ->
-            case doubleCRLF(Str) of
-                {ok} ->
-                    Request = http:parse_request(Str),
-                    Response = reply(Request),
-                    gen_tcp:send(Client, Response);
-                {no} ->
-                    request(Client)
-        end;
-
+            Request = http:parse_request(Str),
+            Response = reply(Request),
+            gen_tcp:send(Client, Response);
         {error, Error} ->
             io:format("rudy: error: ~w~n", [Error])
 end,
 gen_tcp:close(Client).
 
-doubleCRLF([]) -> {no};
-doubleCRLF([13,10,13,10| _ ]) -> {ok};
-doubleCRLF([_|Rest]) -> doubleCRLF(Rest).
 
-
-
-reply({{get, URI, _},_,Body}) ->
+reply({{get, URI, _},_,_}) ->
     timer:sleep(40),
-    http:ok(Body).
+    http:ok(URI).
