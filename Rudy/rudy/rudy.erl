@@ -1,6 +1,6 @@
 -module(rudy).
 -export([start/1, stop/0]).
-
+%this program is created by Joakim Öberg, based on code given in the laboration
 start(Port) -> 
     register(rudy, spawn(fun() -> init(Port) end)).
 
