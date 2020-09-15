@@ -49,9 +49,9 @@ table(Gateways,Map) ->
     AllNodes = map:all_nodes(Map),
     % first create for each gateway {node, 0, node} then for all in Map {node,inf,unknown}
     %creates a initial sorted list, first only 0, then inf
-    Initial = forEach(AllNodes,m),
-    InitialGateways = forEach(Gateways,g),
-    % how to do this instead? operation cost N
+    Initial = forEach(AllNodes,unknown),
+    InitialGateways = forEach(Gateways,gateway),
+    % how to do this instead? operation cost N, usort (unique sort) delete duplicates
     InitialSorted = InitialGateways ++ Initial,
     iterate(InitialSorted,Map,[]).
 
@@ -59,8 +59,8 @@ table(Gateways,Map) ->
 forEach([],_) -> [];
 forEach([H|T],Case) -> 
 case Case of
-    m -> [{H,inf,unknown}|forEach(T,m)];
-    g -> [{H,0,H}|forEach(T,g)]
+    unknown -> [{H,inf,unknown}|forEach(T,unknown)];
+    gateway -> [{H,0,H}|forEach(T,gateway)]
 end.
 
 % search Table if we can send a message to some gateway from node

@@ -3,40 +3,46 @@
 % Code created by Joakim Öberg 14/09-2020
 % all code is added by me, from instructions given in text
 
+% ADDED CODE, returns new interface
 new() -> [].
 
+%ADDED CODE, Add new interface to Intf
 add(Name, Ref, Pid, Intf) -> [{Name,Ref,Pid}|Intf].
 
+%ADDED CODE, remove Name from interfaces
+% remove(Name,Intf)
 remove(_Name,[]) -> [];
 remove(Name,[{Name,_,_}|Rest]) -> Rest;
 remove(Name,[{_,_,_}|Rest]) -> remove(Name,Rest).
 
+%ADDED CODE, return {ok, Pid} if Name is present in interfaces
 lookup(Name,Intf) ->
     case lists:keyfind(Name,1,Intf) of
         {Name,_Ref,Pid} -> {ok, Pid};
         _ -> notfound
 end.
-
+% ADDED CODE, return {ok,Ref} if Name is present in Interface
 ref(Name, Intf) ->
     case lists:keyfind(Name,1,Intf) of
         {Name,Ref,_Pid} -> {ok, Ref};
         _ -> notfound
 end.
-
+% ADDED CODE, return {ok, Name} if Ref is present in Interface
 name(Ref,Intf) ->
     case lists:keyfind(Ref,2,Intf) of
         {Name,Ref,_Pid} -> {ok, Name};
         _ -> notfound
 end.
-
+% ADDED CODE, return list with all names present
+%list(Intf)
 list([]) -> [];
 list([{Name,_Ref,_Pid}|Rest]) -> [Name|list(Rest)].
 
+%ADDED CODE, Send Message to each Pid in interfaces
+%broadcast(Message,Intf)
+broadcast(_,[]) -> broadcast;
+broadcast(Message, [{_Name,_Ref,{Reg,_IPAddr}}|Rest]) ->
+    Reg ! Message,
+    broadcast(Message,Rest).
 
-broadcast(Message, Intf) ->
-    case Intf of
-        [{_Name,_Ref,Pid}|Rest] -> 
-            Pid ! Message,
-            broadcast(Message,Rest)
-end.
    
