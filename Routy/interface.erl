@@ -38,11 +38,11 @@ end.
 list([]) -> [];
 list([{Name,_Ref,_Pid}|Rest]) -> [Name|list(Rest)].
 
-%ADDED CODE, Send Message to each Pid in interfaces
+%ADDED CODE, Send Message to each Pid in interfaces, Pid is {Name, 'country@IPAddr'} erlang can send to the pid directly
 %broadcast(Message,Intf)
 broadcast(_,[]) -> broadcast;
-broadcast(Message, [{_Name,_Ref,{Reg,_IPAddr}}|Rest]) ->
-    Reg ! Message,
+broadcast(Message, [{_Name,_Ref,Pid}|Rest]) ->
+    Pid ! Message,
     broadcast(Message,Rest).
 
    

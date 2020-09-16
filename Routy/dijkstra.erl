@@ -44,24 +44,28 @@ forEachInList(Sorted,[],_Gateway,_N) -> Sorted;
 forEachInList(Sorted,[Dest|ConnectedRest],Gateway, N) ->
     forEachInList(update(Dest,N,Gateway,Sorted),ConnectedRest,Gateway,N).
 
-% constructs a routing table, given gateways and a map
-table(Gateways,Map) ->
-    AllNodes = map:all_nodes(Map),
-    % first create for each gateway {node, 0, node} then for all in Map {node,inf,unknown}
-    %creates a initial sorted list, first only 0, then inf
-    Initial = forEach(AllNodes,unknown),
-    InitialGateways = forEach(Gateways,gateway),
-    % how to do this instead? operation cost N, usort (unique sort) delete duplicates
-    InitialSorted = InitialGateways ++ Initial,
-    iterate(InitialSorted,Map,[]).
 
-% make a list of tuples, if map(m): {node,inf,unknown}, if gateways(g): {node,0,node} 
-forEach([],_) -> [];
-forEach([H|T],Case) -> 
-case Case of
-    unknown -> [{H,inf,unknown}|forEach(T,unknown)];
-    gateway -> [{H,0,H}|forEach(T,gateway)]
+table(Gateways,Map) ->
+    % get all nodes from map
+    AllNodes = map:all_nodes(Map),
+    % delete duplicates from map and gateways
+    UsortedList = lists:usort(AllNodes ++ Gateways),
+    %all nodes in usortedlist is given inf and unknown
+    InfList = lists:map(fun(Node) -> {Node,inf,unknown} end, UsortedList),
+   % for the gateways add {Gateway, 0,Gateway} instead of inf and unknown
+    Sorted = isGatewayOrNot(InfList, Gateways),
+   % Call iterate to make table
+    iterate(Sorted,Map,[]).
+
+% if H is in gateways, add new length=0 and gateway to itself
+isGatewayOrNot(InfList,[]) -> InfList;
+isGatewayOrNot(InfList,[H|Tail]) -> 
+    case lists:keyfind(H, 1, InfList) of
+        {H,_,_} -> isGatewayOrNot(update(H,0,H,InfList),Tail);
+        false -> isGatewayOrNot(InfList,Tail)
 end.
+
+
 
 % search Table if we can send a message to some gateway from node
 route(Node,Table) -> 

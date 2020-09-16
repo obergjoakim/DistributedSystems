@@ -3,7 +3,8 @@
 % This code is created by Joakim Öberg 14/09-2020, from instructions given in text
 
 % new creates a new history to hold old messages from name
-new(Name) -> [{Name,0}].
+%inf to avoid cycles
+new(Name) -> [{Name,inf}].
 
 % check if we already has recieved the msg number or if this is a new msg, a new message has a number bigger than msg-number sofar
 update(Node, N, History) ->

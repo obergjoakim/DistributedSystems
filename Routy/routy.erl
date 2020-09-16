@@ -81,14 +81,14 @@ router(Name,N,Hist,Intf,Table,Map) ->
         io:format("~w: received message ~w ~n", [Name, Message]),
         router(Name, N, Hist, Intf, Table, Map);
 
-    % if message routed to someone else, added from 5.4
+    % if message routed to someone else, added from 5.4, we can send direct to a pid {Name, 'c@Ip'}
     {route, To, From, Message} ->
         io:format("~w: routing message (~w)~n", [Name, Message]),
         case dijkstra:route(To, Table) of
         {ok, Gw} ->
             case interface:lookup(Gw, Intf) of
-                {ok, {Ref, _IPAddr}} ->
-                    Ref ! {route, To, From, Message};
+                {ok, Pid} ->
+                    Pid ! {route, To, From, Message};
                 notfound ->
                     ok
             end;
