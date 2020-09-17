@@ -42,7 +42,7 @@ all_nodes(Map) ->
 noTuples([],L) -> lists:flatten(L);
 noTuples([{Node,Links}|Tail],L) -> noTuples(Tail, [Node,Links|L]).
 
-
+% OLD UNUSED, instead of usort
 % deletes duplicates from a list, replaced with function usort
 noDuplicates([]) -> [];
 noDuplicates([H,H|T]) -> noDuplicates([H|T]);

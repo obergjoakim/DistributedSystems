@@ -9,11 +9,15 @@ new() -> [].
 %ADDED CODE, Add new interface to Intf
 add(Name, Ref, Pid, Intf) -> [{Name,Ref,Pid}|Intf].
 
-%ADDED CODE, remove Name from interfaces
+% DONT WORK, doesnt save ignored node, ADDED CODE, remove Name from interfaces
 % remove(Name,Intf)
-remove(_Name,[]) -> [];
-remove(Name,[{Name,_,_}|Rest]) -> Rest;
-remove(Name,[{_,_,_}|Rest]) -> remove(Name,Rest).
+%remove(_Name,[]) -> [];
+%remove(Name,[{Name,_,_}|Rest]) -> Rest;
+%remove(Name,[H|Rest]) -> remove(Name,Rest).
+
+% ADDED CODE, if name is present remove it from list, otherwise return the list
+remove(Name,Intf) ->
+    lists:keydelete(Name, 1, Intf).
 
 %ADDED CODE, return {ok, Pid} if Name is present in interfaces
 lookup(Name,Intf) ->
