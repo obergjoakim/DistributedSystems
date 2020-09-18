@@ -1,16 +1,18 @@
--module(rudy4).
-
--export([start/1, start/2, stop/0, fib/1, request/1]).
+-module(rudy_parallell).
+-export([start/1, start/2, stop/0,request/1]).
+% Program is created by Joakim Öberg, based on code given in rudy4.erl
 
 start(Port) ->
     start(Port, 1).
 
 start(Port, N) ->
-    register(rudy4, spawn(fun() -> init(Port, N) end)).
+    register(rudy_parallell, spawn(fun() -> init(Port, N) end)).
 
 stop() ->
-    rudy4 ! stop.
+    rudy_parallell ! stop.
 
+% When N processes is spawned from handlers, we wait in super to recieve a "stop". Without super the program does not wait for a "stop" to terminate
+% and are instead terminated directly after all processes is started
 init(Port, N) ->
     case gen_tcp:listen(Port, [list, {active, false}, {reuseaddr, true}]) of
 	{ok, Listen} -> 
@@ -42,7 +44,7 @@ handler(Listen, I) ->
     %%io:format("rudy: waiting for request~n", []),
     case gen_tcp:accept(Listen) of
  	{ok, Client} ->
-	    io:format("rudy ~w: received request~n", [I]),
+	%    io:format("rudy ~w: received request~n", [I]),
             request(Client),
 	    handler(Listen, I);
  	{error, Error} ->
@@ -72,16 +74,5 @@ request(Client) ->
 
 reply({{get, URI, _}, _, _}) -> 
     timer:sleep(40),
-    %%fib(30),
     http:ok("<html><head><title>Rudy</title></head><body>This is a test.<br/>" ++ URI ++ "</body></html>").
 
-
-fib(N) ->    
-    if
-	N == 0 ->
-	    0;
-	N == 1 -> 
-	    1;
-	true -> fib(N-1) + fib(N-2)
-    end.
-	    

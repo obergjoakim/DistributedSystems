@@ -1,5 +1,6 @@
--module(test2).
+-module(test_parallell).
 -export([parse/0, bench/2, bench/4]).
+%this program is created by Joakim Öberg, based on test2.erl given in the laboration
 
 parse() ->
     http:parse_request("GET /foo HTTP/1.1\r\nUser-Agent: Test\r\nAccept: anything\r\n\r\nThis is the body").
@@ -16,8 +17,6 @@ bench(Host, Port, C, N) ->
     io:format(" ~wx~w requests in ~w ms~n", [C,N, (T div 1000)]).
 
     
-
-
 parallel(0, _, _, _, _) ->
     ok;
 parallel(C, Host, Port, N, Ctrl) ->
@@ -43,12 +42,7 @@ run(0, _, _) ->
 run(N, Host, Port) ->
     %%io:format("sending request ~w~n", [N]),
     request(Host, Port),
-    %%dummy(Host, Port),
     run(N-1, Host, Port).
-
-dummy(_, _) ->
-     ok.
-
 
 request(Host, Port) ->
     {ok, Server} = gen_tcp:connect(Host, Port, [list, {active, false}, {reuseaddr, true}]),

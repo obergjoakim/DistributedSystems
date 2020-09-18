@@ -1,6 +1,6 @@
 -module(test).
 -export([bench/2]).
-
+%this program is created by Joakim Öberg, based on code given in the laboration
 bench(Host, Port) ->
     Start = erlang:system_time(milli_seconds),
     run(100, Host, Port),
