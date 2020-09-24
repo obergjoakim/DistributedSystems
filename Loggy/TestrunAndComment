@@ -1,0 +1,355 @@
+------------------ 3 -------------------
+
+Run some tests and try to find log messages that are printed in the wrong
+order. How do you know that they are printed in the wrong order? Experi-
+ment with the jitter ans see if you can increase or decrease (eliminate?) the
+number of entries that are wrong.
+
+
+Ett lågt sleep värde gör en worker mer aktiv, dvs den hinner skicka fler meddelanden.
+
+Ett jitter värde N skapar en random delay mellan 0 och N. Så ett lågt värde får varje worker att vänta en kortare tid mellan att den loggar "receive" och loggar "sending". Så ett lågt värde sänker chansen att en annan worker hinner skriva ut "receive" emellan och ett högt ökar chansen
+
+Från test:run 
+
+
+Inga fel med jitter = 0, alla hinner skriva ut sin sending, innan någon annan receivar 
+
+6> test:run(1000,0).  
+log: na john {sending,{hello,57}}
+log: na ringo {received,{hello,57}}
+log: na ringo {sending,{hello,77}}
+log: na john {received,{hello,77}}
+log: na paul {sending,{hello,68}}
+log: na ringo {received,{hello,68}}
+log: na george {sending,{hello,58}}
+log: na ringo {received,{hello,58}}
+log: na ringo {sending,{hello,20}}
+log: na george {received,{hello,20}}
+log: na paul {sending,{hello,28}}
+log: na john {received,{hello,28}}
+log: na paul {sending,{hello,43}}
+log: na ringo {received,{hello,43}}
+log: na george {sending,{hello,100}}
+log: na ringo {received,{hello,100}}
+log: na john {sending,{hello,90}}
+log: na paul {received,{hello,90}}
+log: na paul {sending,{hello,55}}
+log: na george {received,{hello,55}}
+log: na ringo {sending,{hello,6}}
+log: na george {received,{hello,6}}
+log: na john {sending,{hello,34}}
+log: na ringo {received,{hello,34}}
+log: na paul {sending,{hello,60}}
+log: na ringo {received,{hello,60}}
+log: na george {sending,{hello,1}}
+log: na john {received,{hello,1}}
+log: na john {sending,{hello,40}}
+log: na george {received,{hello,40}}
+log: na george {sending,{hello,57}}
+log: na ringo {received,{hello,57}}
+log: na paul {sending,{hello,43}}
+log: na ringo {received,{hello,43}}
+log: na george {sending,{hello,39}}
+log: na ringo {received,{hello,39}}
+log: na john {sending,{hello,27}}
+log: na paul {received,{hello,27}}
+log: na paul {sending,{hello,55}}
+log: na ringo {received,{hello,55}}
+log: na paul {sending,{hello,45}}
+log: na george {received,{hello,45}}
+log: na john {sending,{hello,36}}
+log: na ringo {received,{hello,36}}
+log: na george {sending,{hello,38}}
+log: na john {received,{hello,38}}
+log: na john {sending,{hello,81}}
+log: na paul {received,{hello,81}}
+log: na george {sending,{hello,35}}
+log: na john {received,{hello,35}}
+log: na george {sending,{hello,53}}
+log: na john {received,{hello,53}}
+log: na ringo {sending,{hello,71}}
+log: na george {received,{hello,71}}
+log: na george {sending,{hello,65}}
+log: na ringo {received,{hello,65}}
+log: na paul {sending,{hello,42}}
+log: na john {received,{hello,42}}
+log: na george {sending,{hello,29}}
+log: na john {received,{hello,29}}
+log: na paul {sending,{hello,40}}
+log: na john {received,{hello,40}}
+stop
+
+Från nästa test 
+Om receiving hamnar först eller efter sending har och göra med att om den hinner få in ett meddelande under Wait eller inte. Problemet är som vi ser med 7 och 97 att 97 hinner emellan i 7ans jitter paus.
+
+log: na paul {received,{hello,7}}
+log: na george {received,{hello,97}}
+log: na ringo {sending,{hello,97}}
+log: na john {sending,{hello,7}}
+log: na ringo {received,{hello,100}}
+log: na john {sending,{hello,23}}
+log: na george {sending,{hello,100}}
+log: na george {received,{hello,23}}
+
+3> test:run(1000,100).
+log: na ringo {received,{hello,57}}
+log: na john {sending,{hello,57}}
+log: na john {received,{hello,77}}
+log: na ringo {sending,{hello,77}}
+log: na ringo {received,{hello,68}}
+log: na paul {sending,{hello,68}}
+log: na george {received,{hello,20}}
+log: na john {received,{hello,20}}
+log: na ringo {sending,{hello,20}}
+log: na paul {sending,{hello,20}}
+log: na george {received,{hello,84}}
+log: na john {sending,{hello,84}}
+log: na george {received,{hello,16}}
+log: na paul {sending,{hello,16}}
+log: na paul {received,{hello,7}}
+log: na george {received,{hello,97}}
+log: na ringo {sending,{hello,97}}
+log: na john {sending,{hello,7}}
+log: na ringo {received,{hello,100}}
+log: na john {sending,{hello,23}}
+log: na george {sending,{hello,100}}
+log: na george {received,{hello,23}}
+log: na george {received,{hello,20}}
+log: na john {received,{hello,40}}
+log: na ringo {sending,{hello,20}}
+log: na george {sending,{hello,40}}
+log: na ringo {received,{hello,60}}
+log: na paul {sending,{hello,60}}
+log: na ringo {received,{hello,56}}
+log: na john {sending,{hello,56}}
+log: na george {received,{hello,18}}
+log: na ringo {received,{hello,79}}
+log: na paul {sending,{hello,79}}
+log: na john {sending,{hello,18}}
+log: na ringo {received,{hello,33}}
+log: na paul {sending,{hello,33}}
+log: na john {received,{hello,95}}
+log: na george {sending,{hello,95}}
+log: na george {received,{hello,39}}
+log: na paul {sending,{hello,39}}
+log: na paul {received,{hello,90}}
+log: na george {received,{hello,29}}
+log: na ringo {sending,{hello,90}}
+log: na john {sending,{hello,29}}
+log: na george {received,{hello,96}}
+log: na john {sending,{hello,96}}
+log: na john {received,{hello,40}}
+log: na john {received,{hello,32}}
+log: na george {sending,{hello,32}}
+log: na paul {sending,{hello,40}}
+log: na john {received,{hello,53}}
+log: na george {sending,{hello,53}}
+log: na ringo {received,{hello,65}}
+log: na george {sending,{hello,65}}
+log: na john {received,{hello,83}}
+log: na paul {sending,{hello,83}}
+log: na john {received,{hello,89}}
+log: na george {sending,{hello,89}}
+log: na paul {received,{hello,27}}
+log: na ringo {sending,{hello,27}}
+log: na john {received,{hello,21}}
+log: na george {sending,{hello,21}}
+log: na george {received,{hello,33}}
+log: na john {sending,{hello,33}}
+log: na ringo {received,{hello,38}}
+log: na john {sending,{hello,38}}
+stop
+
+
+------------------Time implemented 4
+
+Do some tests and identify situations where log entries are printed in the
+wrong order. How do you identify messages that are in the wrong order?
+What is always true and what is sometimes true? How do you play it safe?
+
+Play safe -> No jitter
+
+Identify out of order -> 
+
+Time printed is the internal time if we are in after, (max of internal and received)+1 if we got a message
+
+Always true ->
+That we increment clock when receiving message
+
+sometimes true ->
+?
+ 
+
+17> test:run(2000,200).
+log: 1 ringo {received,{hello,57}}
+log: 0 john {sending,{hello,57}}
+log: 2 john {received,{hello,77}}
+log: 1 ringo {sending,{hello,77}}
+log: 2 ringo {received,{hello,68}}
+log: 0 paul {sending,{hello,68}}
+log: 3 george {received,{hello,20}}
+log: 3 john {received,{hello,20}}
+log: 2 ringo {sending,{hello,20}}
+log: 0 paul {sending,{hello,20}}
+log: 4 george {received,{hello,84}}
+log: 3 john {sending,{hello,84}}
+log: 5 george {received,{hello,16}}
+log: 0 paul {sending,{hello,16}}
+log: 4 paul {received,{hello,7}}
+log: 6 george {received,{hello,97}}
+log: 2 ringo {sending,{hello,97}}
+log: 3 john {sending,{hello,7}}
+log: 7 ringo {received,{hello,100}}
+log: 3 john {sending,{hello,23}}
+log: 6 george {sending,{hello,100}}
+log: 7 george {received,{hello,23}}
+log: 8 george {received,{hello,20}}
+log: 9 john {received,{hello,40}}
+log: 7 ringo {sending,{hello,20}}
+log: 8 george {sending,{hello,40}}
+log: 8 ringo {received,{hello,60}}
+log: 4 paul {sending,{hello,60}}
+log: 10 ringo {received,{hello,56}}
+log: 9 john {sending,{hello,56}}
+log: 10 george {received,{hello,18}}
+log: 11 ringo {received,{hello,79}}
+log: 4 paul {sending,{hello,79}}
+log: 9 john {sending,{hello,18}}
+stop
+
+----------------OPTIONAL---------------
+
+{ok,logger1}
+53> test:run(2000,200).   
+Holdback queue length: 1
+Holdback queue length: 2
+Holdback queue length: 3
+Holdback queue length: 4
+Holdback queue length: 5
+Holdback queue length: 6
+Holdback queue length: 7
+log: 1 john {sending,{hello,57}}
+log: 1 paul {sending,{hello,68}}
+Holdback queue length: 6
+Holdback queue length: 7
+Holdback queue length: 8
+log: 2 paul {sending,{hello,20}}
+log: 2 ringo {received,{hello,57}}
+Holdback queue length: 7
+Holdback queue length: 8
+Holdback queue length: 9
+Holdback queue length: 10
+log: 3 paul {sending,{hello,16}}
+log: 3 ringo {sending,{hello,77}}
+Holdback queue length: 9
+log: 4 ringo {received,{hello,68}}
+log: 4 john {received,{hello,77}}
+log: 5 ringo {sending,{hello,20}}
+log: 5 john {received,{hello,20}}
+Holdback queue length: 6
+Holdback queue length: 7
+log: 6 ringo {sending,{hello,97}}
+log: 6 george {received,{hello,20}}
+log: 6 john {sending,{hello,84}}
+Holdback queue length: 5
+Holdback queue length: 6
+log: 7 george {received,{hello,84}}
+log: 7 john {sending,{hello,7}}
+Holdback queue length: 5
+log: 8 john {sending,{hello,23}}
+log: 8 george {received,{hello,16}}
+log: 8 paul {received,{hello,7}}
+Holdback queue length: 3
+Holdback queue length: 4
+Holdback queue length: 5
+Holdback queue length: 6
+Holdback queue length: 7
+Holdback queue length: 8
+Holdback queue length: 9
+Holdback queue length: 10
+log: 9 paul {sending,{hello,60}}
+log: 9 george {received,{hello,97}}
+Holdback queue length: 9
+Holdback queue length: 10
+Holdback queue length: 11
+Holdback queue length: 12
+Holdback queue length: 13
+log: 10 paul {sending,{hello,79}}
+log: 10 george {sending,{hello,100}}
+Holdback queue length: 12
+Holdback queue length: 12
+stop
+54> testVec:run(2000,200).
+Holdback queue length: 1
+Holdback queue length: 2
+log: [{john,1}] john {sending,{hello,57}}
+log: [{ringo,1},{john,1}] ringo {received,{hello,57}}
+Holdback queue length: 1
+Holdback queue length: 2
+log: [{john,2},{ringo,2}] john {received,{hello,77}}
+log: [{ringo,2},{john,1}] ringo {sending,{hello,77}}
+Holdback queue length: 1
+Holdback queue length: 2
+log: [{paul,1}] paul {sending,{hello,68}}
+log: [{ringo,3},{john,1},{paul,1}] ringo {received,{hello,68}}
+Holdback queue length: 1
+Holdback queue length: 2
+Holdback queue length: 3
+log: [{george,1},{ringo,4},{john,1},{paul,1}] george {received,{hello,20}}
+log: [{ringo,4},{john,1},{paul,1}] ringo {sending,{hello,20}}
+Holdback queue length: 2
+log: [{john,3},{ringo,2},{paul,2}] john {received,{hello,20}}
+log: [{paul,2}] paul {sending,{hello,20}}
+Holdback queue length: 1
+Holdback queue length: 2
+log: [{george,2},{ringo,4},{john,4},{paul,2}] george {received,{hello,84}}
+log: [{john,4},{ringo,2},{paul,2}] john {sending,{hello,84}}
+Holdback queue length: 1
+Holdback queue length: 2
+log: [{george,3},{ringo,4},{john,4},{paul,3}] george {received,{hello,16}}
+log: [{paul,3}] paul {sending,{hello,16}}
+Holdback queue length: 1
+Holdback queue length: 2
+Holdback queue length: 3
+log: [{george,4},{ringo,5},{john,4},{paul,3}] george {received,{hello,97}}
+log: [{ringo,5},{john,1},{paul,1}] ringo {sending,{hello,97}}
+Holdback queue length: 2
+log: [{john,5},{ringo,2},{paul,2}] john {sending,{hello,7}}
+log: [{paul,4},{john,5},{ringo,2}] paul {received,{hello,7}}
+Holdback queue length: 1
+Holdback queue length: 2
+log: [{john,6},{ringo,2},{paul,2}] john {sending,{hello,23}}
+Holdback queue length: 2
+log: [{george,5},{ringo,5},{john,4},{paul,3}] george {sending,{hello,100}}
+log: [{ringo,6},{john,4},{paul,3},{george,5}] ringo {received,{hello,100}}
+Holdback queue length: 1
+log: [{george,6},{ringo,5},{john,6},{paul,3}] george {received,{hello,23}}
+Holdback queue length: 1
+Holdback queue length: 2
+Holdback queue length: 3
+log: [{george,7},{ringo,7},{john,6},{paul,3}] george {received,{hello,20}}
+log: [{ringo,7},{john,4},{paul,3},{george,5}] ringo {sending,{hello,20}}
+Holdback queue length: 2
+log: [{george,8},{ringo,7},{john,6},{paul,3}] george {sending,{hello,40}}
+log: [{john,7},{ringo,7},{paul,3},{george,8}] john {received,{hello,40}}
+Holdback queue length: 1
+Holdback queue length: 2
+log: [{paul,5},{john,5},{ringo,2}] paul {sending,{hello,60}}
+log: [{ringo,8},{john,5},{paul,5},{george,5}] ringo {received,{hello,60}}
+Holdback queue length: 1
+Holdback queue length: 2
+log: [{john,8},{ringo,7},{paul,3},{george,8}] john {sending,{hello,56}}
+log: [{ringo,9},{john,8},{paul,5},{george,8}] ringo {received,{hello,56}}
+Holdback queue length: 1
+Holdback queue length: 2
+Holdback queue length: 3
+log: [{paul,6},{john,5},{ringo,2}] paul {sending,{hello,79}}
+log: [{ringo,10},{john,8},{paul,6},{george,8}] ringo {received,{hello,79}}
+Holdback queue length: 2
+log: [{george,9},{ringo,7},{john,9},{paul,3}] george {received,{hello,18}}
+log: [{john,9},{ringo,7},{paul,3},{george,8}] john {sending,{hello,18}}
+Holdback queue length: 0
+stop
+55> 
+

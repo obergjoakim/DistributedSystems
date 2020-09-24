@@ -1,4 +1,4 @@
--module(worker).
+-module(workerVec).
 -export([start/5,stop/1,peers/2]).
 
 % the worker will wait for a while and then send a message to one of its peers. 
@@ -19,13 +19,13 @@ init(Name, Log, Seed, Sleep, Jitter) ->
     random:seed(Seed, Seed, Seed),
     receive
         {peers, Peers} ->
-            loop(Name, Log, Peers, Sleep, Jitter,time:zero());
+            loop(Name, Log, Peers, Sleep, Jitter,vect:zero());
         stop ->
             ok
     end.
 
 
-
+% used in test when initializing
 peers(Wrk, Peers) ->
     Wrk ! {peers, Peers}.
 % added time
@@ -34,7 +34,7 @@ loop(Name, Log, Peers, Sleep, Jitter,Time)->
     receive
         % take max time and increment
         {msg, ReceivedTime, Msg} ->
-            MaxTime = time:inc(Name, time:merge(Time, ReceivedTime)),
+            MaxTime = vect:inc(Name, vect:merge(ReceivedTime,Time)),
             %print ReceivedTime to see if out of order, or the new internal MaxTime
             Log ! {log, Name, MaxTime, {received, Msg}},
             loop(Name, Log, Peers, Sleep, Jitter,MaxTime);
@@ -44,16 +44,16 @@ loop(Name, Log, Peers, Sleep, Jitter,Time)->
             Log ! {log, Name, time, {error, Error}}
     after Wait ->
         Selected = select(Peers),
-        UpdatedTime = time:inc(Name, Time),
+        UpdatedTime = vect:inc(Name, Time),
         Message = {hello, random:uniform(100)},
         Selected ! {msg, UpdatedTime, Message},
-        jitter(Jitter), % the random sleep befor actually logging that we sent a message
+        jitter(Jitter),
         Log ! {log, Name, UpdatedTime, {sending, Message}},
         loop(Name, Log, Peers, Sleep, Jitter,UpdatedTime)
     end.
 
 select(Peers) ->
     lists:nth(random:uniform(length(Peers)), Peers).
-
+% the jitter decides the random sleep between sending a peer a message and when we actually logg it
 jitter(0) -> ok;
 jitter(Jitter) -> timer:sleep(random:uniform(Jitter)).

@@ -1,4 +1,4 @@
--module(logger1).
+-module(loggerVec).
 -export([start/1,stop/1]).
 % if file had name logger I got error
 %=ERROR REPORT==== 21-Sep-2020::23:07:52.297839 ===
@@ -15,18 +15,18 @@ stop(Logger) ->
     Logger ! stop.
 
 init(Nodes) ->
-    Clock = time:clock(Nodes),
+    Clock = vect:clock(Nodes),
     loop(Clock,[]).
 
 loop(Clock,Queue) ->
     receive
         {log,From,Time,Msg} ->
             % returns tuple list of all times
-            NewClock = time:update(From, Time, Clock),
+            NewClock = vect:update(From, Time, Clock),
             % returns FIFO queue with added msg
             NewQueue =  lists:keysort(2, [{From,Time,Msg}|Queue]),
             % every time a message is added to the queue the length of the queue is printed
-            io:format("Holdback queue length: ~w~n", [length(NewQueue)]),
+            %io:format("Holdback queue length: ~w~n", [length(NewQueue)]),
             % print msg safe to print
             UpdatedQueue = safeToPrint(NewClock,NewQueue,[]),
             loop(NewClock, UpdatedQueue);
@@ -40,13 +40,13 @@ end.
 safeToPrint(_Clock,[],Queue) -> Queue;
 % iterate through queue, if a node clock in queue has a time lower than incoming clock -> print the one in queu
 safeToPrint(Clock,[{Node,QueueTime,Msg}|Tail],Q) ->
-            case time:safe(QueueTime, Clock) of
+            case vect:safe(QueueTime, Clock) of
                 true -> log(Node, QueueTime,Msg),
                         safeToPrint(Clock, Tail, Q);
                 false -> safeToPrint(Clock, Tail, [{Node,QueueTime,Msg}|Q])
     end.
 
     
-
+%print
 log(From,Time,Msg) ->
   io:format("log: ~w ~w ~p~n", [Time, From, Msg]).
