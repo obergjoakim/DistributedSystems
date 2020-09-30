@@ -40,8 +40,9 @@ go(Wrk) ->
 
 sleep(Wrk, Sleep) ->
     Wrk ! {send, {sleep, Sleep}}.
-
-go(Wrk) ->
+    
+% changed name to stop from go, seems more logic
+stop(Wrk) ->
     Wrk ! {send, stop}.
 
 

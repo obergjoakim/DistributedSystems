@@ -26,7 +26,7 @@ loop(Clock,Queue) ->
             % returns FIFO queue with added msg
             NewQueue =  lists:keysort(2, [{From,Time,Msg}|Queue]),
             % every time a message is added to the queue the length of the queue is printed
-            io:format("Holdback queue length: ~w~n", [length(NewQueue)]),
+          %  io:format("Holdback queue length: ~w~n", [length(NewQueue)]),
             % print msg safe to print
             UpdatedQueue = safeToPrint(NewClock,NewQueue,[]),
             loop(NewClock, UpdatedQueue);

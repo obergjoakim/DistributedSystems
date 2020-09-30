@@ -25,7 +25,7 @@ init(Name, Log, Seed, Sleep, Jitter) ->
     end.
 
 
-
+% used in test
 peers(Wrk, Peers) ->
     Wrk ! {peers, Peers}.
 % added time
