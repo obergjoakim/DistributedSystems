@@ -1,0 +1,33 @@
+
+
+worker.erl - code given
+
+Is responsible for each worker, can start, init, join, the state of a worker, init/ start to a group. Worker process: waits for messages such as change, join, freeze, sleep, state, stop, view and state_request. Is also responsible for changing its color.
+
+---------------------------------------------------------------------
+gui.erl
+
+The code that lets us view the pop-up screens for each worker, is called in init_cont in worker.erl
+
+---------------------------------------------------------------------
+test.erl
+
+A program that lets us start several workers at once. We can call test with the module (ex gms1 or gms2) that we want to test.
+
+
+-------------------------------------------------------------
+GMS1
+
+Will only handle starting of a single node and the adding of more nodes. Faliures will not be handeled.
+
+
+First test: 
+2> W1 = test:first(1,gms1,1000).
+<0.88.0>
+3> test:add(2,gms1,W1,1000).
+<0.97.0>
+4> test:add(3,gms1,W1,1000).
+<0.102.0>
+
+Three windowes are up and are synched, showing the same color at once. 
+When Stopping worker 2 or 3 nothing happens more s
