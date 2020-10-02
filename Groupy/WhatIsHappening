@@ -19,3 +19,15 @@ A program that lets us start several workers at once. We can call test with the 
 GMS1
 
 Will only handle starting of a single node and the adding of more nodes. Faliures will not be handeled.
+
+
+First test: 
+2> W1 = test:first(1,gms1,1000).
+<0.88.0>
+3> test:add(2,gms1,W1,1000).
+<0.97.0>
+4> test:add(3,gms1,W1,1000).
+<0.102.0>
+
+Three windowes are up and are synched, showing the same color at once. 
+When Stopping worker 2 or 3 nothing happens more s

@@ -1,8 +1,5 @@
--module(gms2).
--export([start/1,start/2]).
-
--define(timeout, 2500).
--define(arghh, 200).
+-module(gms1).
+-export([start/1, start/2]).
 
 
 % from instructions, the leader
@@ -24,10 +21,18 @@ leader(Id, Master, Slaves, Group) ->
             ok
 end.
 
+% written by me, sends the message to all its slaves(processes)
+bcast(Id, Msg, Slaves) ->
+    case Slaves of
+        [] -> ok;
+        [P1|Rest] -> 
+            P1 ! Msg,
+            bcast(Id, Msg, Rest)
+end.
+
+
 slave(Id, Master, Leader, Slaves, Group) ->
     receive
-        {'DOWN', _Ref, process, Leader, _Reason} -> % ADDED CODE from 3.1
-            election(Id, Master, Slaves, Group);
         {mcast, Msg} -> % request from master to multicast message
             Leader ! {mcast, Msg}, % forwarded to leader
             slave(Id, Master, Leader, Slaves, Group);
@@ -44,64 +49,26 @@ slave(Id, Master, Leader, Slaves, Group) ->
             ok
 end.
 
-
-% ADDED CODE from 3.2
-bcast(Id, Msg, Nodes) ->
-    lists:foreach(fun(Node) -> Node ! Msg, crash(Id) end, Nodes).
-
-% ADDED CODE from 3.2
-crash(Id) ->
-    case random:uniform(?arghh) of
-        ?arghh ->
-            io:format("leader ~w: crash~n", [Id]),
-            exit(no_luck);
-        _ ->
-            ok
-    end.
-
-% 
 % start first node, is its own leader
 start(Id) ->
-    Rnd = random:uniform(1000), % ADDED CODE Rnd in 3.2
     Self = self(),
-    {ok, spawn_link(fun()-> init(Id, Rnd,Self) end)}.
+    {ok, spawn_link(fun()-> init(Id, Self) end)}.
 
 % the first node will have itself as leader, empty list of peers
-init(Id, Rnd,Master) -> % ADDED CODE Rnd in 3.2
-    random:seed(Rnd,Rnd,Rnd),
+init(Id, Master) ->
     leader(Id, Master, [], [Master]).
 
 % starting a node that should join a group, is initially a slave
 start(Id, Grp) ->
-    Rnd = random:uniform(1000), % ADDED CODE Rnd in 3.2
     Self = self(),
-    {ok, spawn_link(fun()-> init(Id, Grp, Self, Rnd) end)}.
+    {ok, spawn_link(fun()-> init(Id, Grp, Self) end)}.
 
 % to be a part of a group we need to send a "join" message to a node in group, 
-init(Id, Grp, Master,Rnd) -> % ADDED CODE Rnd in 3.2
-    random:seed(Rnd,Rnd,Rnd), 
+init(Id, Grp, Master) ->
     Self = self(),
     Grp ! {join, Master, Self},
     receive
         {view, [Leader|Slaves], Group} ->
-            erlang:monitor(process, Leader), % ADDED CODE from 3.1
             Master ! {view, Group},
             slave(Id, Master, Leader, Slaves, Group)
-    % ADDED CODE from 3.1
-    after ?timeout ->
-        Master ! {error, "no reply from leader"}
-    end.
-
-% ADDED CODE from 3.1
-% if a node find itself first in list, then becomes new leader of group
-election(Id, Master, Slaves, [_|Group]) ->
-    Self = self(),
-    case Slaves of
-        [Self|Rest] ->
-            bcast(Id, {view, Slaves, Group}, Rest),
-            Master ! {view, Group},
-            leader(Id, Master, Rest, Group);
-        [Leader|Rest] ->
-            erlang:monitor(process, Leader),
-            slave(Id, Master, Leader, Rest, Group)
     end.
