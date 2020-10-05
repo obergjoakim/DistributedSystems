@@ -5,6 +5,16 @@
 -define(Timeout, 1000).
 
 
+% skapa N keys, addera alla till P, gör en check
+generateKeysAddnCheck(N, P) ->
+    % generate N keys
+    Keys = keys(N),
+    % add the keys to P
+    add(Keys, P),
+    % do check
+    check(Keys, P).
+
+
 %% Starting up a set of nodes is made easier using this function.
 
 start(Module) ->

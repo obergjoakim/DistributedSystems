@@ -1,8 +1,11 @@
 -module(key).
 -export([generate/0,between/3]).
 
+% doesnt work correctly, its not random, two different computers gets the same values with same seed
 % returns int between 1 and 1000 000 000, 30 bits
-generate() -> random:uniform(1000000000).
+%generate() -> random:uniform(1000000000).
+
+generate() -> rand:uniform(1000000000).
 
 % will this work??
 between(_Key, From, From) -> true;
@@ -14,7 +17,7 @@ between(Key, From, To) ->
             end;
         % if From > To
         false -> 
-            case Key < To of
+            case Key =< To of
                     true -> true;
                     false -> 
                         case Key > From of

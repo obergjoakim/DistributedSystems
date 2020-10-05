@@ -1,4 +1,4 @@
--module(node1).
+-module(node2).
 -export([start/1, start/2]).
 
 -define(Stabilize, 1000).
@@ -30,37 +30,70 @@ init(Id, Peer) ->
     Predecessor = nil,
     {ok, Successor} = connect(Id, Peer),
     schedule_stabilize(),
-    node(Id, Predecessor, Successor).
+    node(Id, Predecessor, Successor, []).
 
 
 
 
-node(Id, Predecessor, Successor) ->
+node(Id, Predecessor, Successor, Store) ->
     receive
     {key, Qref, Peer} ->
         Peer ! {Qref, Id},
-        node(Id, Predecessor, Successor);
+        node(Id, Predecessor, Successor, Store);
     {notify, New} ->
-        Pred = notify(New, Id, Predecessor),
-        node(Id, Pred, Successor);
+        {Pred, Keep} = notify(New, Id, Predecessor, Store),
+        node(Id, Pred, Successor, Keep);
     {request, Peer} ->
         request(Peer, Predecessor),
-        node(Id, Predecessor, Successor);
+        node(Id, Predecessor, Successor, Store);
     {status, Pred} ->
         Succ = stabilize(Pred, Id, Successor),
-        node(Id, Predecessor, Succ);
+        node(Id, Predecessor, Succ, Store);
     stabilize ->
         stabilize(Successor),
-        node(Id, Predecessor, Successor);
+        node(Id, Predecessor, Successor, Store);
     probe ->
         create_probe(Id, Successor),
-        node(Id, Predecessor, Successor);
+        node(Id, Predecessor, Successor, Store);
     {probe, Id, Nodes, T} ->
         remove_probe(T, Nodes),
-        node(Id, Predecessor, Successor);
+        node(Id, Predecessor, Successor, Store);
     {probe, Ref, Nodes, T} ->
         forward_probe(Ref, T, Nodes, Id, Successor),
-        node(Id, Predecessor, Successor)
+        node(Id, Predecessor, Successor, Store);
+    {add, Key, Value, Qref, Client} ->          % added in 2.2
+        Added = add(Key, Value, Qref, Client,
+        Id, Predecessor, Successor, Store),
+        node(Id, Predecessor, Successor, Added);
+    {lookup, Key, Qref, Client} ->              % added in 2.2
+        lookup(Key, Qref, Client, Id, Predecessor, Successor, Store),
+        node(Id, Predecessor, Successor, Store);
+    {handover, Elements} ->
+        Merged = storage:merge(Store, Elements),
+        node(Id, Predecessor, Successor, Merged)
+
+end.
+
+% ADDED From 2.3
+add(Key, Value, Qref, Client, Id, {Pkey, _}, {_, Spid}, Store) ->
+    case key:between(Key, Pkey, Id) of % is the new key between the one behind and me?
+        true ->
+            Client ! {Qref, ok},
+            storage:add(Key,Value,Store);
+        false ->
+        Spid ! {add, Key, Value, Qref, Client},
+        Store
+end.
+
+% ADDED From 2.4
+lookup(Key, Qref, Client, Id, {Pkey, _}, Successor, Store) ->
+    case key:between(Key, Pkey, Id) of
+        true ->
+            Result = storage:lookup(Key, Store),
+            Client ! {Qref, Result};
+        false ->
+            {_, Spid} = Successor,
+            Spid ! {lookup,Key,Qref,Client}
 end.
 
 % do we want to save all Spids? to what??
@@ -114,14 +147,24 @@ end.
 schedule_stabilize() ->
     timer:send_interval(?Stabilize, self(), stabilize).
 
-notify({Nkey, Npid}, Id, {Id,_}) -> {Nkey, Npid}; 
-notify({Nkey, Npid}, Id, Predecessor) ->
-   % io:format("Id: ~w got notify msg from: ~w ~n", [Id,Nkey]),
+
+notify({Nkey, Npid}, Id, Predecessor, Store) ->
     case Predecessor of
-        nil -> {Nkey, Npid};
+        nil ->
+            Keep = handover(Id, Store, Nkey, Npid),
+            {{Nkey, Npid},Keep};
         {Pkey, _} ->
-        case key:between(Nkey, Pkey, Id) of
-            true -> {Nkey, Npid};
-            false -> Predecessor
-        end
-    end.
+            case key:between(Nkey, Pkey, Id) of
+        true ->
+            Keep = handover(Id, Store, Nkey, Npid),
+            {{Nkey, Npid},Keep};
+        false ->
+            {Predecessor, Store}
+    end
+end.
+
+handover(Id, Store, Nkey, Npid) ->
+    % changed place of Id and Nkey, we want to include Id
+    {Keep, Rest} = storage:split(Nkey,Id, Store), 
+    Npid ! {handover, Rest},
+    Keep.
